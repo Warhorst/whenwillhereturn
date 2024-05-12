@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use chrono::{TimeDelta, TimeZone, Utc};
+use chrono::{Local, TimeDelta, TimeZone, Utc};
 use eframe::{App, Frame};
 use eframe::epaint::{FontFamily, FontId};
 use egui::{CentralPanel, Context, TextStyle};
@@ -13,7 +13,7 @@ fn main() -> Result<(), eframe::Error> {
 
     let loop_delta_until_return = Arc::clone(&delta_until_return);
     thread::spawn(move || {
-        let return_date = Utc.with_ymd_and_hms(2024, 10, 1, 9, 30, 0).unwrap();
+        let return_date = Local.with_ymd_and_hms(2024, 10, 1, 9, 30, 0).unwrap();
 
         loop {
             thread::sleep(Duration::from_secs(1));
@@ -49,7 +49,8 @@ impl App for WhenWillHeReturnApp {
                 FontId::new(36.0, FontFamily::Proportional),
             );
 
-            ui.heading("When will he return?");
+            // Yeah, interactive. I am definitely not too lazy to rewrite this in a UI with continuous updates.
+            ui.heading("When will he return? This is an interactive counter, so move your mouse to find out!");
 
             let delta = self.delta_until_return.lock().unwrap();
 
@@ -57,9 +58,9 @@ impl App for WhenWillHeReturnApp {
                 ui.heading("He returned!");
             } else {
                 let days = delta.num_days();
-                let hours = (delta.num_hours() - delta.num_days() * 24) % 24;
-                let minutes = (delta.num_minutes() - delta.num_days() * 24 * 60) % 60;
-                let seconds = (delta.num_seconds() - delta.num_days() * 24 * 60 * 60) % 60;
+                let hours = delta.num_hours() % 24;
+                let minutes = delta.num_minutes() % 60;
+                let seconds = delta.num_seconds() % 60;
 
                 ui.heading(format!("He will return in {days} days, {hours} hours, {minutes} minutes and {seconds} seconds"));
             }
